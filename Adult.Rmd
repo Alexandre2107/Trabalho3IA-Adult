@@ -1,9 +1,68 @@
+---
+title: "Algoritmos de Aprendizado de Máquina"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+
+# Sobre a base de dados
+O conjunto de dados utilizado é chamado "Adult" e foi derivado do banco de dados do censo dos EUA. Foi preparado por Barry Becker a partir do censo de 1994. O propósito desse conjunto de dados é prever se uma pessoa ganha mais ou menos de US$ 50.000 por ano.
+
+Link do conjunto de dados: [https://archive.ics.uci.edu/ml/datasets/Adult](https://archive.ics.uci.edu/ml/datasets/Adult)
+
+# Carregando os dados
+```{r results='hide'}
 train_data <- read.csv(file = "train_data.csv")
 test_data <- read.csv(file = "test_data.csv")
+```
 
-# ============================================================================== #
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
 
-#Algoritmo Baseline (Classe Majoritária)
+
+data_part1 <- train_data[1:5, 1:7]
+data_part2 <- train_data[1:5, 8:ncol(train_data)]
+
+
+table1 <- kable(data_part1, caption = "Adult Train Data - Part 1")
+
+
+table2 <- kable(data_part2, caption = "Adult Train Data - Part 2")
+
+
+cat(table1, sep = "\n")
+cat("\n\n")
+cat(table2, sep = "\n")
+
+```
+
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+
+
+data_part1 <- test_data[1:5, 1:7]
+data_part2 <-test_data[1:5, 8:ncol(test_data)]
+
+
+table1 <- kable(data_part1, caption = "Adult Test Data - Part 1")
+
+
+table2 <- kable(data_part2, caption = "Adult Test Data - Part 2")
+
+
+cat(table1, sep = "\n")
+cat("\n\n")
+cat(table2, sep = "\n")
+
+```
+
+# 1. Algoritmo Baseline (Classe Majoritária)
+O algoritmo baseline é um algoritmo simples que serve como referência para avaliar a eficácia de outros algoritmos. O algoritmo baseline prevê a classe majoritária em todos os casos.
+
+```{r results='hide'}
+
 train_data$income_Baseline <- 0
 
 true_negatives <- sum(train_data$income_Baseline == 0 & train_data$income == 0)
@@ -13,10 +72,28 @@ true_positives <- 0
 
 
 cat("Matriz de Confusão:\n")
-cat("           Previsto 0   Previsto 1\n")
-cat("Real 0:    ", true_negatives, "        ", false_positives, "\n")
-cat("Real 1:    ", false_negatives, "        ", true_positives, "\n\n")
+cat("           Previsto 0    Previsto 1\n")
+cat(sprintf("Real 0:     %d            %d\n", true_negatives, false_positives))
+cat(sprintf("Real 1:     %d            %d\n", false_negatives, true_positives))
+```
 
+```{r echo = FALSE}
+
+train_data$income_Baseline <- 0
+
+true_negatives <- sum(train_data$income_Baseline == 0 & train_data$income == 0)
+false_positives <- sum(train_data$income_Baseline == 0 & train_data$income == 1)
+false_negatives <- 0
+true_positives <- 0
+
+
+cat("Matriz de Confusão:\n")
+cat("           Previsto 0    Previsto 1\n")
+cat(sprintf("Real 0:     %d            %d\n", true_negatives, false_positives))
+cat(sprintf("Real 1:     %d            %d\n", false_negatives, true_positives))
+```
+
+```{r}  
 accuracy_baseline <- (true_negatives + true_positives) / length(train_data$income)
 cat("Acurácia:", accuracy_baseline, "\n")
 
@@ -36,10 +113,16 @@ if (true_positives + false_negatives == 0) {
 }
 
 train_data$income_Baseline <- remove()
+```
+Com base nos resultados podemos ver que as métricas utilizadas foram, Acurácia, Precisão, Recall, e matriz de Confusão. A acurácia do algoritmo baseline é de 0.7441355. A precisão é de 0 e o recall é de 0. Isso ocorre porque o algoritmo baseline prevê a classe majoritária em todos os casos, ou seja, prevê que ninguém ganha mais de US$ 50.000 por ano.
 
-# ============================================================================== #
+# 2. Definição da técnica de Validação
+Foi Utilizado a técnica de validação cruzada k-fold com k = 5. Pois a validação cruzada k-fold é uma técnica de validação de modelo que divide o conjunto de dados em k subconjuntos menores. O modelo é treinado em k-1 subconjuntos e testado no subconjunto restante. Esse processo é repetido k vezes, com cada subconjunto sendo usado como conjunto de teste uma vez. A validação cruzada k-fold é uma técnica eficaz para avaliar a capacidade de generalização de um modelo.
 
-# Algoritmo K-NN
+# 3. Algoritmo KNN
+O algoritmo KNN (K-Nearest Neighbors) é um algoritmo de aprendizado supervisionado que pode ser usado para classificação e regressão. O algoritmo KNN classifica um novo ponto de dados com base nos pontos de dados existentes que estão mais próximos a ele. O algoritmo KNN tem um parâmetro chamado k, que é o número de vizinhos mais próximos a serem considerados.
+
+```{r}
 if (!require(class)) install.packages("class")
 library(class)
 
@@ -104,10 +187,13 @@ print(paste("Precisão média da validação cruzada:", mean_precision_knn))
 # Média dos recalls dos K folds
 mean_recall_knn <- mean(recall)
 print(paste("Recall médio da validação cruzada:", mean_recall_knn))
+```
 
-# ============================================================================== #
 
-# Algoritmo arvore de decisão
+# 4. Árvore de Decisão
+O algoritmo de árvore de decisão é um algoritmo de aprendizado supervisionado que pode ser usado para classificação e regressão. O algoritmo de árvore de decisão divide o conjunto de dados em subconjuntos menores com base em um conjunto de regras. O algoritmo de árvore de decisão tem parâmetros que controlam a profundidade da árvore e o número mínimo de amostras necessárias para dividir um nó. 
+
+```{r}
 if (!require(rpart)) install.packages("rpart")
 library(rpart)
 
@@ -167,10 +253,13 @@ print(paste("Precisão média da validação cruzada:", mean_precision_DecTree))
 # Média dos recalls dos K folds
 mean_recall_DecTree <- mean(recall)
 print(paste("Recall médio da validação cruzada:", mean_recall_DecTree))
+```
 
-# ============================================================================== #
+# 5. Redes Neurais
+As redes neurais são um tipo de algoritmo de aprendizado de máquina que são inspirados no funcionamento do cérebro humano. As redes neurais são compostas por camadas de neurônios que são conectados entre si. Cada neurônio recebe entradas, realiza um cálculo e passa a saída para os neurônios da próxima camada. As redes neurais têm parâmetros que controlam o número de camadas, o número de neurônios em cada camada e a função de ativação.
 
-#Algoritmo de Rede Neural (MLP)
+```{r}
+
 if (!require(nnet)) install.packages("nnet")
 library(nnet)
 train_data$income <- as.factor(train_data$income)
@@ -206,7 +295,7 @@ for (i in 1:K) {
     precision_list <- c(precision_list, precision)
   }
   
-  
+
   false_negatives <- sum(mlp_pred == 0 & test_labels == 1)
   if (true_positives + false_negatives == 0) {
     recall <- 0
@@ -230,32 +319,32 @@ print(paste("Precisão média da validação cruzada:", mean_precision_mlp))
 
 mean_recall_mlp <- mean(recall)
 print(paste("Recall médio da validação cruzada:", mean_recall_mlp))
-
-# ============================================================================== #
-
-
-# Comparação dos resultados
-cat("Acurácia média da validação cruzada para o algoritmo Baseline:", accuracy_baseline, "\n")
-cat("Precisão média da validação cruzada para o algoritmo Baseline: Não definida (nenhuma previsão positiva)\n\n")
-cat("Recall médio da validação cruzada para o algoritmo Baseline: Não definido (nenhum valor real positivo)\n\n")
-
-cat("Acurácia média da validação cruzada para o algoritmo K-NN:", mean_accuracy_knn, "\n")
-cat("Precisão média da validação cruzada para o algoritmo K-NN:", mean_precision_knn, "\n\n")
-cat("Recall médio da validação cruzada para o algoritmo K-NN:", mean_recall_knn, "\n\n")
+```
 
 
-cat("Acurácia média da validação cruzada para o algoritmo Árvore de Decisão:", mean_accuracy_DecTree, "\n")
-cat("Precisão média da validação cruzada para o algoritmo Árvore de Decisão:", mean_precision_DecTree, "\n\n")
-cat("Recall médio da validação cruzada para o algoritmo Árvore de Decisão:", mean_recall_DecTree, "\n\n")
 
-cat("Acurácia média da validação cruzada para o algoritmo Rede Neural:", mean_accuracy_mlp, "\n")
-cat("Precisão média da validação cruzada para o algoritmo Rede Neural:", mean_precision_mlp, "\n\n")
-cat("Recall médio da validação cruzada para o algoritmo Rede Neural:", mean_recall_mlp, "\n\n")
-# ============================================================================== #
 
-# Gráfico barplot (Precisão, Acurácia e recall) e traçar a linha do baseline em um barplot
+# 6. Comparação dos Algoritmos
+```{r echo = FALSE , results = 'asis'}
+if (!require(kableExtra)) install.packages("kableExtra")
+library(kableExtra)
 
-algoritmos <- c("Baseline", "K-NN", "Árvore de Decisão", "Rede Neural (MLP)")
+resultados <- data.frame(
+  Algoritmo = c("Baseline", "K-NN", "Árvore de Decisão", "Rede Neural (MLP)"),
+  Acurácia = c(accuracy_baseline, mean_accuracy_knn, mean_accuracy_DecTree, mean_accuracy_mlp),
+  Precisão = c(0, mean_precision_knn, mean_precision_DecTree, mean_precision_mlp),
+  Recall = c(0, mean_recall_knn, mean_recall_DecTree, mean_recall_mlp)
+)
+
+resultados %>%
+  kbl(col.names = c("Algoritmo", "Acurácia", "Precisão", "Recall"), digits = 4) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                full_width = F, position = "center") %>%
+  column_spec(2:4, bold = TRUE, color = "white", background = c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728")) %>%
+  row_spec(0, bold = TRUE, color = "white", background = "#4CAF50") %>%
+  add_header_above(c(" " = 1, "Resultados dos Algoritmos" = 3))
+
+algoritmos <- c("Baseline", "K-NN", "Árvore de Dec", "Rede Neural")
 acuracias <- c(accuracy_baseline, mean_accuracy_knn, mean_accuracy_DecTree, mean_accuracy_mlp )
 baseline_acuracia <- accuracy_baseline
 
@@ -266,7 +355,7 @@ abline(h = baseline_acuracia, col = "red", lty = 2, lwd = 2)
 
 text(x = 1, y = baseline_acuracia + 0.02, labels = paste("Baseline =", baseline_acuracia), col = "red")
 
-algoritmos <- c("Baseline", "K-NN", "Árvore de Decisão", "Rede Neural (MLP)")
+algoritmos <- c("Baseline", "K-NN", "Árvore de Dec", "Rede Neural")
 precisoes <- c(0, mean_precision_knn, mean_precision_DecTree, mean_precision_mlp)
 baseline_precisao <- 0
 
@@ -277,8 +366,7 @@ abline(h = baseline_precisao, col = "red", lty = 2, lwd = 2)
 
 text(x = 1, y = baseline_precisao + 0.02, labels = paste("Baseline =", baseline_precisao), col = "red")
 
-#gráfico de recall
-algoritmos <- c("Baseline", "K-NN", "Árvore de Decisão", "Rede Neural (MLP)")
+algoritmos <- c("Baseline", "K-NN", "Árvore de Dec", "Rede Neural")
 recalls <- c(0, mean_recall_knn, mean_recall_DecTree, mean_recall_mlp)
 baseline_recall <- 0
 
@@ -288,11 +376,16 @@ barplot(recalls, names.arg = algoritmos, col = "lightyellow", ylim = c(0, 1),
 abline(h = baseline_recall, col = "red", lty = 2, lwd = 2)
 
 text(x = 1, y = baseline_recall + 0.02, labels = paste("Baseline =", baseline_recall), col = "red")
+```
 
 
-# ============================================================================== #
+# Conclusão 
+As métricas importantes nesse contexto são Precisão e Recall pois, a Precisão é importante para evitar falsos positivos(ou seja, prever corretamente as pessoas que ganham mais de 50.000). E Recall é importante para evitar falsos negativos (ou seja, garantir que todas as pessoas que ganham mais de 50.000 sejam corretamente identificadas).
 
-# Aplicar o algoritmo Árvore de Decisão na base de teste  
+# Aplicar o algoritmo Árvore de Decisão na base de teste
+
+```{r}
+
 decision_tree <- rpart(income ~ ., data = train_data, method = "class")
 rpart_pred <- predict(decision_tree, test_features, type = "class")
 
@@ -317,8 +410,8 @@ if (true_positives + false_positives == 0) {
   cat("Precisão na base de teste:", precision_rpart_test, "\n")
 }
 
-#calular recall
 recall <- true_positives / (true_positives + false_negatives)
 cat("Recall na base de teste:", recall, "\n")
 
-# ============================================================================== #
+```
+
